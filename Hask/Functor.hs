@@ -1,26 +1,21 @@
-{-# language KindSignatures #-}
-{-# language PolyKinds #-}
-{-# language DataKinds #-}
-{-# language TypeFamilies #-}
-{-# language RankNTypes #-}
-{-# language NoImplicitPrelude #-}
-{-# language FlexibleContexts #-}
-{-# language MultiParamTypeClasses #-}
-{-# language EmptyDataDecls #-}
-{-# language InstanceSigs #-}
-{-# language GADTs #-}
-{-# language ConstraintKinds #-}
-{-# language FlexibleInstances #-}
-{-# language TypeOperators #-}
-{-# language ScopedTypeVariables #-}
-{-# language DefaultSignatures #-}
-{-# language FunctionalDependencies #-}
-{-# language UndecidableSuperClasses #-}
-{-# language UndecidableInstances #-}
-{-# language TypeApplications #-}
-{-# language TypeInType #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE UndecidableSuperClasses #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeInType #-}
 
-module Control.Category where
+module Hask.Functor where
 
 import qualified Prelude
 import Prelude (Either(..), Maybe, IO)
@@ -32,8 +27,6 @@ import qualified Data.Type.Equality as Equality
 import Data.Type.Equality ((:~:)(..))
 
 import Data.Constraint (Dict(..), (:-)(..), (\\))
-
-import Unsafe.Coerce (unsafeCoerce)
 
 type Cat i = i -> i -> Type
 
@@ -249,92 +242,4 @@ instance Functor (Coercion e) where
 instance Groupoid Coercion where
   sym = Coercion.sym
 
---------------------------------------------------------------------------------
--- * Product Category
---------------------------------------------------------------------------------
-
-type family Fst (a :: (i, j)) :: i where
-  Fst '(x, y) = x
-
-type family Snd (a :: (i, j)) :: j where
-  Snd '(x, y) = y
-
-data Product (p :: Cat i) (q :: Cat j) :: Cat (i, j) where
-  Product :: p a c -> q b d -> Product p q '(a, b) '(c, d)
-
-tupleEta :: forall (i :: Type) (j :: Type) (a :: (i, j)). a :~: '(Fst a, Snd a)
-tupleEta = unsafeCoerce Refl
-
-class (p (Fst a), q (Snd a)) => And (p :: i -> Constraint) (q :: j -> Constraint) (a :: (i, j)) where
-instance (p (Fst a), q (Snd a)) => And p q a where 
-
-instance (Category p, Category q) => Category (Product p q) where
-  type Ob (Product p q) = And (Ob p) (Ob q)
-  id :: forall a. Ob (Product p q) a => Product p q a a
-  id = case tupleEta @_ @_ @a of
-    Refl -> Product id id
-  Product p1 q1 . Product p2 q2 = Product (p1 . p2) (q1 . q2)
-  source (Product p q) = case (source p, source q) of
-    (Dict, Dict) -> Dict
-  target (Product p q) = case (target p, target q) of
-    (Dict, Dict) -> Dict
-
-instance (Category p, Category q) => Functor (Product p q) where
-  type Dom (Product p q) = Yoneda (Product p q)
-  type Cod (Product p q) = Nat (Product p q) (->)
-  fmap (Yoneda prod1) = Nat (\prod2 -> prod2 . prod1)
-
-instance (Category p, Category q) => Functor (Product p q a) where
-  type Dom (Product p q a) = Product p q
-  type Cod (Product p q a) = (->)
-  fmap = (.)
-
---------------------------------------------------------------------------------
--- * Coproduct Category
---------------------------------------------------------------------------------
-
-data Coproduct (p :: Cat i) (q :: Cat j) :: Cat (Either i j) where
-  InjL :: p a c -> Coproduct p q (Left a)  (Left c)
-  InjR :: q b d -> Coproduct p q (Right b) (Right d)
-
-data Or (p :: i -> Constraint) (q :: j -> Constraint) (a :: Either i j) where
-  OrL :: p x => Or p q (Left x)
-  OrR :: q y => Or p q (Right y)
-
-class ImplicitOr (p :: i -> Constraint) (q :: j -> Constraint) (a :: Either i j) where
-  implicitOr :: Or p q a
-instance p x => ImplicitOr p q (Left x)  where
-  implicitOr = OrL
-instance q y => ImplicitOr p q (Right y) where
-  implicitOr= OrR
-
-instance (Category p, Category q) => Category (Coproduct p q) where
-  type Ob (Coproduct p q) = ImplicitOr (Ob p) (Ob q)
-  id :: forall a. Ob (Coproduct p q) a => Coproduct p q a a
-  id = case implicitOr :: Or (Ob p) (Ob q) a of
-    OrL -> InjL id
-    OrR -> InjR id
-  coprod1 . coprod2 = case coprod1 of
-    InjL p1 -> case coprod2 of
-      InjL p2 -> InjL (p1 . p2)
-    InjR q1 -> case coprod2 of
-      InjR q2 -> InjR (q1 . q2)
-  source (InjL p) = case source p of
-    Dict -> Dict
-  source (InjR q) = case source q of
-    Dict -> Dict
-  target (InjL p) = case target p of
-    Dict -> Dict
-  target (InjR q) = case target q of
-    Dict -> Dict
-
-instance (Category p, Category q) => Functor (Coproduct p q) where
-  type Dom (Coproduct p q) = Yoneda (Coproduct p q)
-  type Cod (Coproduct p q) = Nat (Coproduct p q) (->)
-  fmap (Yoneda coprod1) = Nat (\coprod2 -> coprod2 . coprod1)
-
-instance (Category p, Category q) => Functor (Coproduct p q a) where
-  type Dom (Coproduct p q a) = Coproduct p q
-  type Cod (Coproduct p q a) = (->)
-  fmap = (.)
 

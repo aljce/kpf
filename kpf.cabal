@@ -26,4 +26,5 @@ library
       base >= 4.5 && < 5
     , constraints >= 0.10 && < 1
   exposed-modules:
-      Control.Category
+      Hask.Functor
+    , Hask.Functor.Polynomial
