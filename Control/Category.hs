@@ -6,6 +6,8 @@
 {-# language NoImplicitPrelude #-}
 {-# language FlexibleContexts #-}
 {-# language MultiParamTypeClasses #-}
+{-# language EmptyDataDecls #-}
+{-# language InstanceSigs #-}
 {-# language GADTs #-}
 {-# language ConstraintKinds #-}
 {-# language FlexibleInstances #-}
@@ -15,6 +17,7 @@
 {-# language FunctionalDependencies #-}
 {-# language UndecidableSuperClasses #-}
 {-# language UndecidableInstances #-}
+{-# language TypeApplications #-}
 {-# language TypeInType #-}
 
 module Control.Category where
@@ -29,6 +32,8 @@ import qualified Data.Type.Equality as Equality
 import Data.Type.Equality ((:~:)(..))
 
 import Data.Constraint (Dict(..), (:-)(..), (\\))
+
+import Unsafe.Coerce (unsafeCoerce)
 
 type Cat i = i -> i -> Type
 
@@ -243,3 +248,50 @@ instance Functor (Coercion e) where
 
 instance Groupoid Coercion where
   sym = Coercion.sym
+
+--------------------------------------------------------------------------------
+-- * Product Category
+--------------------------------------------------------------------------------
+type family Fst (a :: (i, j)) :: i where
+  Fst '(x, y) = x
+
+type family Snd (a :: (i, j)) :: j where
+  Snd '(x, y) = y
+
+data Product (p :: Cat i) (q :: Cat j) :: Cat (i, j) where
+  Product :: p a c -> q b d -> Product p q '(a, b) '(c, d)
+
+tupleEta :: forall (i :: Type) (j :: Type) (a :: (i, j)). a :~: '(Fst a, Snd a)
+tupleEta = unsafeCoerce Refl
+
+class (p (Fst a), q (Snd a)) => And (p :: i -> Constraint) (q :: j -> Constraint) (a :: (i, j)) where
+instance (p (Fst a), q (Snd a)) => And p q a where 
+
+instance (Category p, Category q) => Category (Product p q) where
+  type Ob (Product p q) = And (Ob p) (Ob q)
+  id :: forall a. Ob (Product p q) a => Product p q a a
+  id = case tupleEta @_ @_ @a of
+    Refl -> Product id id
+  Product p1 q1 . Product p2 q2 = Product (p1 . p2) (q1 . q2)
+  source (Product p q) = case (source p, source q) of
+    (Dict, Dict) -> Dict
+  target (Product p q) = case (target p, target q) of
+    (Dict, Dict) -> Dict
+
+instance (Category p, Category q) => Functor (Product p q) where
+  type Dom (Product p q) = Yoneda (Product p q)
+  type Cod (Product p q) = Nat (Product p q) (->)
+  fmap (Yoneda prod1) = Nat (\prod2 -> prod2 . prod1)
+
+instance (Category p, Category q) => Functor (Product p q a) where
+  type Dom (Product p q a) = Product p q
+  type Cod (Product p q a) = (->)
+  fmap = (.)
+
+--------------------------------------------------------------------------------
+-- * Coproduct Category
+--------------------------------------------------------------------------------
+
+data Coproduct (p :: Cat i) (q :: Cat j) :: Cat (Either i j) where
+  InjL :: p a c -> Coproduct p q (Left a)  (Left c)
+  InjR :: q b d -> Coproduct p q (Right b) (Right d)
