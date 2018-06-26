@@ -31,8 +31,8 @@ type Cat i = i -> i -> Type
 
 newtype Y p a b = Y { getY :: p b a }
 
-class Vacuous (p :: Cat i) (a :: i)
-instance Vacuous p a
+class Always (p :: Cat i) (a :: i)
+instance Always p a
 
 data Dict (p :: Constraint) where
   Dict :: p => Dict p
@@ -42,17 +42,17 @@ class (Functor p, Dom p ~ Op p, Cod p ~ Nat p (->), Ob (Op p) ~ Ob p) => Categor
   type Op p = Y p
 
   type Ob p :: i -> Constraint
-  type Ob p = Vacuous p
+  type Ob p = Always p
 
   id :: Ob p a => p a a
   (.) :: p b c -> p a b -> p a c
 
   source :: p a b -> Dict (Ob p a)
-  default source :: (Ob p ~ Vacuous p) => p a b -> Dict (Ob p a)
+  default source :: (Ob p ~ Always p) => p a b -> Dict (Ob p a)
   source _ = Dict
 
   target :: p a b -> Dict (Ob p b)
-  default target :: (Ob p ~ Vacuous p) => p a b -> Dict (Ob p b)
+  default target :: (Ob p ~ Always p) => p a b -> Dict (Ob p b)
   target _ = Dict
 
   op :: p b a -> Op p a b
@@ -66,14 +66,17 @@ class (Functor p, Dom p ~ Op p, Cod p ~ Nat p (->), Ob (Op p) ~ Ob p) => Categor
 type family Hask :: Cat ob where
   Hask = ((->) :: Cat Type)
 
+type family OldFunctor (k :: Type) :: k -> Constraint where
+  OldFunctor (Type -> Type) = Prelude.Functor
+ 
 class (Category (Dom f), Category (Cod f)) => Functor (f :: i -> j) where
   type Dom f :: Cat i
   type Dom f = Hask
   type Cod f :: Cat j
   type Cod f = Hask
   fmap :: Dom f a b -> Cod f (f a) (f b)
-  {- default fmap :: (i ~ Type, j ~ Type, Dom f ~ Hask, Cod f ~ Hask) => Dom f a b -> Cod f (f a) (f b) -}
-  {- fmap = _ -}
+  default fmap :: (i ~ Type, j ~ Type, Dom f ~ Hask, Cod f ~ Hask, OldFunctor (i -> j) f) => Dom f a b -> Cod f (f a) (f b)
+  fmap = Prelude.fmap
 
 class (Functor f, Dom f ~ p, Cod f ~ q) => FunctorOf p q f | f -> p q
 instance (Functor f, Dom f ~ p, Cod f ~ q) => FunctorOf p q f
@@ -110,10 +113,6 @@ instance Category (->) where
   id = Prelude.id
   (.) = (Prelude..)
 
-instance Functor ((->) e) where
-  type Dom ((->) e) = (->)
-  type Cod ((->) e) = (->)
-  fmap = (.)
 
 instance Functor (->) where
   type Dom (->) = Y (->)
@@ -174,31 +173,12 @@ instance Functor (:-) where
 -- * Common Functors
 --------------------------------------------------------------------------------
 
+instance Functor ((->) e) where
 instance Functor ((,) e) where
-  type Dom ((,) e) = (->)
-  type Cod ((,) e) = (->)
-  fmap f ~(a,b) = (a, f b)
-
 instance Functor (Either e) where
-  type Dom (Either e) = (->)
-  type Cod (Either e) = (->)
-  fmap _ (Left a) = Left a
-  fmap f (Right b) = Right (f b)
-
 instance Functor [] where
-  type Dom [] = (->)
-  type Cod [] = (->)
-  fmap = Prelude.fmap
-
 instance Functor Prelude.Maybe where
-  type Dom Maybe = (->)
-  type Cod Maybe = (->)
-  fmap = Prelude.fmap
-
 instance Functor IO where
-  type Dom IO = (->)
-  type Cod IO = (->)
-  fmap = Prelude.fmap
 
 instance Functor (,) where
   type Dom (,) = (->)
