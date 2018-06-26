@@ -19,27 +19,27 @@
 
 module Control.Category where
 
+import qualified Prelude
+import Prelude (Either(..), Maybe, IO)
+
+import Data.Kind (Constraint, Type)
 import qualified Data.Type.Coercion as Coercion
 import Data.Type.Coercion (Coercion(..))
 import qualified Data.Type.Equality as Equality
 import Data.Type.Equality ((:~:)(..))
-import Data.Kind (Constraint, Type)
-import qualified Prelude
-import Prelude (Either(..), Maybe, IO)
+
+import Data.Constraint (Dict(..), (:-)(..), (\\))
 
 type Cat i = i -> i -> Type
 
-newtype Y p a b = Y { getY :: p b a }
+newtype Yoneda p a b = Yoneda { runYoneda :: p b a }
 
 class Always (p :: Cat i) (a :: i)
 instance Always p a
 
-data Dict (p :: Constraint) where
-  Dict :: p => Dict p
-
 class (Functor p, Dom p ~ Op p, Cod p ~ Nat p (->), Ob (Op p) ~ Ob p) => Category (p :: Cat i) where
   type Op p :: Cat i
-  type Op p = Y p
+  type Op p = Yoneda p
 
   type Ob p :: i -> Constraint
   type Ob p = Always p
@@ -56,12 +56,12 @@ class (Functor p, Dom p ~ Op p, Cod p ~ Nat p (->), Ob (Op p) ~ Ob p) => Categor
   target _ = Dict
 
   op :: p b a -> Op p a b
-  default op :: Op p ~ Y p => p b a -> Op p a b
-  op = Y
+  default op :: Op p ~ Yoneda p => p b a -> Op p a b
+  op = Yoneda
   
   unop :: Op p b a -> p a b
-  default unop :: Op p ~ Y p => Op p b a -> p a b
-  unop = getY
+  default unop :: Op p ~ Yoneda p => Op p b a -> p a b
+  unop = runYoneda
 
 type family Hask :: Cat ob where
   Hask = ((->) :: Cat Type)
@@ -97,9 +97,9 @@ ob :: forall p q f a. FunctorOf p q f => Ob p a :- Ob q (f a)
 ob = Sub (case source (fmap id :: q (f a) (f a)) of Dict -> Dict)
 
 instance (Category p, Category q) => Functor (Nat p q) where
-  type Dom (Nat p q) = Y (Nat p q)
+  type Dom (Nat p q) = Yoneda (Nat p q)
   type Cod (Nat p q) = Nat (Nat p q) (->)
-  fmap (Y f) = Nat (. f)
+  fmap (Yoneda f) = Nat (. f)
 
 instance (Category p, Category q) => Functor (Nat p q f) where
   type Dom (Nat p q f) = Nat p q
@@ -113,41 +113,34 @@ instance Category (->) where
   id = Prelude.id
   (.) = (Prelude..)
 
-
 instance Functor (->) where
-  type Dom (->) = Y (->)
+  type Dom (->) = Yoneda (->)
   type Cod (->) = Nat (->) (->)
-  fmap (Y f) = Nat (. f)
+  fmap (Yoneda f) = Nat (. f)
 
-instance (Category p, Op p ~ Y p) => Category (Y p) where
-  type Op (Y p) = p
-  type Ob (Y p) = Ob p
-  id = Y id
-  Y f . Y g = Y (g . f)
-  source (Y f) = target f
-  target (Y f) = source f
-  unop = Y
-  op = getY
+instance (Category p, Op p ~ Yoneda p) => Category (Yoneda p) where
+  type Op (Yoneda p) = p
+  type Ob (Yoneda p) = Ob p
+  id = Yoneda id
+  Yoneda f . Yoneda g = Yoneda (g . f)
+  source (Yoneda f) = target f
+  target (Yoneda f) = source f
+  unop = Yoneda
+  op = runYoneda
 
-instance (Category p, Op p ~ Y p) => Functor (Y p a) where
-  type Dom (Y p a) = Y p
-  type Cod (Y p a) = (->)
+instance (Category p, Op p ~ Yoneda p) => Functor (Yoneda p a) where
+  type Dom (Yoneda p a) = Yoneda p
+  type Cod (Yoneda p a) = (->)
   fmap = (.)
 
-instance (Category p, Op p ~ Y p) => Functor (Y p) where
-  type Dom (Y p) = p
-  type Cod (Y p) = Nat (Y p) (->)
-  fmap f = Nat (. Y f)
+instance (Category p, Op p ~ Yoneda p) => Functor (Yoneda p) where
+  type Dom (Yoneda p) = p
+  type Cod (Yoneda p) = Nat (Yoneda p) (->)
+  fmap f = Nat (. Yoneda f)
 
 --------------------------------------------------------------------------------
 -- Type Constraints
 --------------------------------------------------------------------------------
-
-infixl 1 \\ -- comment required for cpp
-(\\) :: a => (b => r) -> (a :- b) -> r
-r \\ Sub Dict = r
-
-newtype p :- q = Sub (p => Dict q)
 
 instance Functor Dict where
   type Dom Dict = (:-)
@@ -165,9 +158,9 @@ instance Functor ((:-) e) where
   fmap = (.)
 
 instance Functor (:-) where
-  type Dom (:-) = Y (:-)
+  type Dom (:-) = Yoneda (:-)
   type Cod (:-) = Nat (:-) (->)
-  fmap (Y f) = Nat (. f)
+  fmap (Yoneda f) = Nat (. f)
 
 --------------------------------------------------------------------------------
 -- * Common Functors
