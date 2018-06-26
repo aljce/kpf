@@ -1,0 +1,28 @@
+name:          kpf
+category:      categories
+version:       0.1.0
+license:       BSD3
+cabal-version: >= 1.10
+license-file:  LICENSE
+author:        Kyle McKean
+maintainer:    Kyle McKean <mckean.kylej@gmail.com>
+stability:     provisional
+homepage:      http://github.com/mckeankylej/kpf
+bug-reports:   http://github.com/mckeankylej/kpf/issues
+copyright:     Copyright (C) 2018 Edward Kmett, Kyle McKean
+synopsis:      Kind Polymorphic Category Theory
+description:   FIXME
+build-type:    Simple
+tested-with:   GHC == 8.4.2
+
+source-repository head
+  type: git
+  location: git://github.com/mckeankylej/kpf.git
+
+library
+  default-language: Haskell98
+  ghc-options: -Wall
+  build-depends:
+      base >= 4.5 && < 5
+  exposed-modules:
+      Control.Category

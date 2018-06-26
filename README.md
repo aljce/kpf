@@ -1,0 +1,1 @@
+# Kind Polymorphic Functors

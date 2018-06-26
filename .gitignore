@@ -1,0 +1,9 @@
+*.ghc*
+test*
+dist*
+dist-newstyle*
+*.swo
+*.swp
+*.swa
+*.ps
+result*
