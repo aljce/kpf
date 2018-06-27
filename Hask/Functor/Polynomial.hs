@@ -20,7 +20,7 @@
 
 module Hask.Functor.Polynomial where
 
-import qualified Prelude ()
+import qualified Prelude as Base
 import Prelude (type Either(..))
 
 import Data.Kind (Constraint, Type)
@@ -29,7 +29,7 @@ import Data.Type.Equality ((:~:)(..))
 
 import Unsafe.Coerce (unsafeCoerce)
 
-import Data.Constraint (Dict(..), Bottom(..))
+import Data.Constraint (Dict(..), (:-), (\\), Bottom(..))
 
 import Hask.Functor
 import Hask.Groupoid
@@ -189,12 +189,21 @@ instance (Groupoid p, Groupoid q) => Groupoid (Coproduct p q) where
 -- * Bi/Pro Functors
 --------------------------------------------------------------------------------
 
-class (Functor b, Dom b ~ Product p q, Category p, Category q) =>
-  Bifunctor (p :: Cat i) (q :: Cat j) (b :: (i, j) -> k) | b -> p q where
-instance (Functor b, Dom b ~ Product p q, Category p, Category q) => Bifunctor p q b where
+class (Functor f, Cod f ~ Nat p q, Category p, Category q) =>
+  Bifunctor (p :: Cat j) (q :: Cat k) (f :: i -> j -> k) | f -> p q where
+instance (Functor f, Cod f ~ Nat p q, Category p, Category q) => Bifunctor p q f where
 
-bimap :: Bifunctor p q b => p x y -> q w z -> Cod b (b '(x, w)) (b '(y, z))
-bimap p q = fmap (Product p q)
+second :: forall p q f a c d. (Bifunctor p q f, Ob (Dom f) a) => p c d -> q (f a c) (f a d)
+second p = fmap p \\ lemma
+  where
+    lemma :: Ob (Dom f) a :- (FunctorOf p q (f a))
+    lemma = ob
 
-dimap :: Bifunctor p q b => Op p x y -> q w z -> Cod b (b '(y, w)) (b '(x, z))
+bimap :: Bifunctor p q f => Dom f a b -> p c d -> q (f a c) (f b d)
+bimap d p = case (source d, target p) of
+  (Dict, Dict) -> runNat (fmap d) . second p
+
+dimap :: Bifunctor p q f => Op (Dom f) b a -> p c d -> q (f a c) (f b d)
 dimap = bimap . unop
+
+test = dimap (Base.+ 1) Base.tail Base.show 14
