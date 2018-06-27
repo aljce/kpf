@@ -17,8 +17,11 @@
 
 module Hask.Functor where
 
-import qualified Prelude
-import Prelude (Either(..), Maybe, IO)
+import qualified Prelude as Base
+import qualified Data.Bifunctor as Base
+import qualified Data.Complex as Base
+import qualified Control.Monad.ST as Strict
+import qualified Control.Monad.ST.Lazy as Lazy
 
 import Data.Kind (Constraint, Type)
 import qualified Data.Type.Coercion as Coercion
@@ -26,7 +29,8 @@ import Data.Type.Coercion (Coercion(..))
 import qualified Data.Type.Equality as Equality
 import Data.Type.Equality ((:~:)(..))
 
-import Data.Constraint (Dict(..), (:-)(..), (\\))
+import Data.Constraint (Dict(..), (:-)(..), (\\), mapDict)
+import qualified Data.Constraint as Constraint
 
 type Cat i = i -> i -> Type
 
@@ -65,7 +69,7 @@ type family Hask :: Cat ob where
   Hask = ((->) :: Cat Type)
 
 type family OldFunctor (k :: Type) :: k -> Constraint where
-  OldFunctor (Type -> Type) = Prelude.Functor
+  OldFunctor (Type -> Type) = Base.Functor
  
 class (Category (Dom f), Category (Cod f)) => Functor (f :: i -> j) where
   type Dom f :: Cat i
@@ -74,7 +78,7 @@ class (Category (Dom f), Category (Cod f)) => Functor (f :: i -> j) where
   type Cod f = Hask
   fmap :: Dom f a b -> Cod f (f a) (f b)
   default fmap :: (i ~ Type, j ~ Type, Dom f ~ Hask, Cod f ~ Hask, OldFunctor (i -> j) f) => Dom f a b -> Cod f (f a) (f b)
-  fmap = Prelude.fmap
+  fmap = Base.fmap
 
 class (Functor f, Dom f ~ p, Cod f ~ q) => FunctorOf p q f | f -> p q
 instance (Functor f, Dom f ~ p, Cod f ~ q) => FunctorOf p q f
@@ -97,7 +101,7 @@ ob = Sub (case source (fmap id :: q (f a) (f a)) of Dict -> Dict)
 instance (Category p, Category q) => Functor (Nat p q) where
   type Dom (Nat p q) = Yoneda (Nat p q)
   type Cod (Nat p q) = Nat (Nat p q) (->)
-  fmap (Yoneda f) = Nat (. f)
+  fmap (Yoneda nat1) = Nat (\nat2 -> nat2 . nat1)
 
 instance (Category p, Category q) => Functor (Nat p q f) where
   type Dom (Nat p q f) = Nat p q
@@ -108,13 +112,13 @@ contramap :: Functor f => Op (Dom f) b a -> Cod f (f a) (f b)
 contramap = fmap . unop
 
 instance Category (->) where
-  id = Prelude.id
-  (.) = (Prelude..)
+  id = Base.id
+  (.) = (Base..)
 
 instance Functor (->) where
   type Dom (->) = Yoneda (->)
   type Cod (->) = Nat (->) (->)
-  fmap (Yoneda f) = Nat (. f)
+  fmap (Yoneda f1) = Nat (\f2 -> f2 . f1)
 
 instance (Category p, Op p ~ Yoneda p) => Category (Yoneda p) where
   type Op (Yoneda p) = p
@@ -134,7 +138,7 @@ instance (Category p, Op p ~ Yoneda p) => Functor (Yoneda p a) where
 instance (Category p, Op p ~ Yoneda p) => Functor (Yoneda p) where
   type Dom (Yoneda p) = p
   type Cod (Yoneda p) = Nat (Yoneda p) (->)
-  fmap f = Nat (. Yoneda f)
+  fmap f1 = Nat (\f2 -> f2 . Yoneda f1)
 
 --------------------------------------------------------------------------------
 -- Type Constraints
@@ -143,12 +147,11 @@ instance (Category p, Op p ~ Yoneda p) => Functor (Yoneda p) where
 instance Functor Dict where
   type Dom Dict = (:-)
   type Cod Dict = (->)
-  fmap p Dict = case p of
-    Sub q -> q
+  fmap = mapDict
 
 instance Category (:-) where
-  id = Sub Dict
-  f . g = Sub (Dict \\ f \\ g)
+  id = Constraint.refl
+  (.) = Constraint.trans
 
 instance Functor ((:-) e) where
   type Dom ((:-) e) = (:-)
@@ -158,7 +161,7 @@ instance Functor ((:-) e) where
 instance Functor (:-) where
   type Dom (:-) = Yoneda (:-)
   type Cod (:-) = Nat (:-) (->)
-  fmap (Yoneda f) = Nat (. f)
+  fmap (Yoneda d1) = Nat (\d2 -> d2 . d1)
 
 --------------------------------------------------------------------------------
 -- * Common Functors
@@ -166,23 +169,23 @@ instance Functor (:-) where
 
 instance Functor ((->) e) where
 instance Functor ((,) e) where
-instance Functor (Either e) where
+instance Functor (Base.Either e) where
 instance Functor [] where
-instance Functor Prelude.Maybe where
-instance Functor IO where
+instance Functor Base.Maybe where
+instance Functor Base.IO where
+instance Functor Base.Complex where
+instance Functor (Strict.ST s) where
+instance Functor (Lazy.ST s) where
 
 instance Functor (,) where
   type Dom (,) = (->)
   type Cod (,) = Nat (->) (->)
   fmap f = Nat (\(a,b) -> (f a, b))
 
-instance Functor Either where
-  type Dom Either = (->)
-  type Cod Either = Nat (->) (->)
-  fmap f0 = Nat (go f0) where
-    go :: (a -> b) -> Either a c -> Either b c
-    go f (Left a)  = Left (f a)
-    go _ (Right b) = Right b
+instance Functor Base.Either where
+  type Dom Base.Either = (->)
+  type Cod Base.Either = Nat (->) (->)
+  fmap f0 = Nat (Base.first f0) where
 
 --------------------------------------------------------------------------------
 -- * Groupoids
@@ -201,7 +204,7 @@ instance (Category p, Groupoid q) => Groupoid (Nat p q) where
 instance Category (:~:) where
   type Op (:~:) = (:~:)
   id = Refl
-  (.) = Prelude.flip Equality.trans
+  (.) = Base.flip Equality.trans
   op = sym
   unop = sym
 
@@ -225,7 +228,7 @@ instance Groupoid (:~:) where
 instance Category Coercion where
   type Op Coercion = Coercion
   id = Coercion
-  (.) = Prelude.flip Coercion.trans
+  (.) = Base.flip Coercion.trans
   op   = sym
   unop = sym
 
