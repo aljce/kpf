@@ -24,10 +24,10 @@ import qualified Control.Monad.ST as Strict
 import qualified Control.Monad.ST.Lazy as Lazy
 
 import Data.Kind (Constraint, Type)
-import qualified Data.Type.Coercion as Coercion
-import Data.Type.Coercion (Coercion(..))
-import qualified Data.Type.Equality as Equality
 import Data.Type.Equality ((:~:)(..))
+import qualified Data.Type.Equality as Equality
+import Data.Type.Coercion (Coercion(..))
+import qualified Data.Type.Coercion as Coercion
 
 import Data.Constraint (Dict(..), (:-)(..), (\\), mapDict)
 import qualified Data.Constraint as Constraint
@@ -188,16 +188,6 @@ instance Functor Base.Either where
   fmap f0 = Nat (Base.first f0) where
 
 --------------------------------------------------------------------------------
--- * Groupoids
---------------------------------------------------------------------------------
-
-class Category p => Groupoid p where
-  sym :: p a b -> p b a
-
-instance (Category p, Groupoid q) => Groupoid (Nat p q) where
-  sym f@Nat{} = Nat (sym (runNat f))
-
---------------------------------------------------------------------------------
 -- * Type Equality
 --------------------------------------------------------------------------------
 
@@ -205,8 +195,8 @@ instance Category (:~:) where
   type Op (:~:) = (:~:)
   id = Refl
   (.) = Base.flip Equality.trans
-  op = sym
-  unop = sym
+  op = Equality.sym
+  unop = Equality.sym
 
 instance Functor (:~:) where
   type Dom (:~:) = (:~:)
@@ -218,9 +208,6 @@ instance Functor ((:~:) e) where
   type Cod ((:~:) e) = (->)
   fmap = (.)
 
-instance Groupoid (:~:) where
-  sym = Equality.sym
-
 --------------------------------------------------------------------------------
 -- * Type Coercions 
 --------------------------------------------------------------------------------
@@ -229,8 +216,8 @@ instance Category Coercion where
   type Op Coercion = Coercion
   id = Coercion
   (.) = Base.flip Coercion.trans
-  op   = sym
-  unop = sym
+  op   = Coercion.sym
+  unop = Coercion.sym
 
 instance Functor Coercion where
   type Dom Coercion = Coercion
@@ -241,8 +228,5 @@ instance Functor (Coercion e) where
   type Dom (Coercion e) = Coercion
   type Cod (Coercion e) = (->)
   fmap = (.)
-
-instance Groupoid Coercion where
-  sym = Coercion.sym
 
 

@@ -31,6 +31,7 @@ import Unsafe.Coerce (unsafeCoerce)
 import Data.Constraint (Dict(..), Bottom(..))
 
 import Hask.Functor
+import Hask.Groupoid
 
 --------------------------------------------------------------------------------
 -- * 0 Category
