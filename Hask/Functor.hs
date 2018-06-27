@@ -232,3 +232,24 @@ instance Functor (Coercion e) where
 
 contramap :: Functor f => Op (Dom f) b a -> Cod f (f a) (f b)
 contramap = fmap . unop
+
+--------------------------------------------------------------------------------
+-- * Bi/Pro Functors
+--------------------------------------------------------------------------------
+
+class (Functor f, Cod f ~ Nat p q, Category p, Category q) =>
+  Bifunctor (p :: Cat j) (q :: Cat k) (f :: i -> j -> k) | f -> p q where
+instance (Functor f, Cod f ~ Nat p q, Category p, Category q) => Bifunctor p q f where
+
+second :: forall p q f a c d. (Bifunctor p q f, Ob (Dom f) a) => p c d -> q (f a c) (f a d)
+second p = fmap p \\ lemma
+  where
+    lemma :: Ob (Dom f) a :- FunctorOf p q (f a)
+    lemma = ob
+
+bimap :: Bifunctor p q f => Dom f a b -> p c d -> q (f a c) (f b d)
+bimap d p = case (source d, target p) of
+  (Dict, Dict) -> runNat (fmap d) . second p
+
+dimap :: Bifunctor p q f => Op (Dom f) b a -> p c d -> q (f a c) (f b d)
+dimap = bimap . unop
