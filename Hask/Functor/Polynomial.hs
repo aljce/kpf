@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DataKinds #-}
@@ -183,3 +184,17 @@ instance (Category p, Category q) => Functor (Coproduct p q a) where
 instance (Groupoid p, Groupoid q) => Groupoid (Coproduct p q) where
   sym (InjL p) = InjL (sym p)
   sym (InjR q) = InjR (sym q)
+
+--------------------------------------------------------------------------------
+-- * Bi/Pro Functors
+--------------------------------------------------------------------------------
+
+class (Functor b, Dom b ~ Product p q, Category p, Category q) =>
+  Bifunctor (p :: Cat i) (q :: Cat j) (b :: (i, j) -> k) | b -> p q where
+instance (Functor b, Dom b ~ Product p q, Category p, Category q) => Bifunctor p q b where
+
+bimap :: Bifunctor p q b => p x y -> q w z -> Cod b (b '(x, w)) (b '(y, z))
+bimap p q = fmap (Product p q)
+
+dimap :: Bifunctor p q b => Op p x y -> q w z -> Cod b (b '(y, w)) (b '(x, z))
+dimap = bimap . unop

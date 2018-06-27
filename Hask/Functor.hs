@@ -108,9 +108,6 @@ instance (Category p, Category q) => Functor (Nat p q f) where
   type Cod (Nat p q f) = (->)
   fmap = (.)
 
-contramap :: Functor f => Op (Dom f) b a -> Cod f (f a) (f b)
-contramap = fmap . unop
-
 instance Category (->) where
   id = Base.id
   (.) = (Base..)
@@ -229,4 +226,9 @@ instance Functor (Coercion e) where
   type Cod (Coercion e) = (->)
   fmap = (.)
 
+--------------------------------------------------------------------------------
+-- * Contravariant Functors
+--------------------------------------------------------------------------------
 
+contramap :: Functor f => Op (Dom f) b a -> Cod f (f a) (f b)
+contramap = fmap . unop
