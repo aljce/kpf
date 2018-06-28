@@ -1,6 +1,10 @@
 {-# LANGUAGE UndecidableSuperClasses #-}
 {-# LANGUAGE TypeInType #-}
-module Hask.Functor.Faithful where
+module Hask.Functor.Faithful 
+  (
+  -- * Fully Faithful Functors 
+  FullyFaithful(..)
+  ) where
 
 import qualified Prelude ()
 

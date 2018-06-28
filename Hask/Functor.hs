@@ -15,7 +15,31 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeInType #-}
 
-module Hask.Functor where
+module Hask.Functor 
+  (
+  -- * Categories
+    type Cat
+  , Category(..)
+  , Yoneda(..)
+  , Always
+  -- * Functors
+  , type Hask
+  , type OldFunctor
+  , Functor(..)
+  , FunctorOf
+  , Nat(..)
+  -- * Contravariant Functors
+  , contramap
+  -- * Bifunctors
+  , BifunctorOf
+  , first
+  , second
+  , bimap
+  -- * Profunctors
+  , lmap
+  , rmap
+  , dimap
+  ) where
 
 import qualified Prelude as Base
 import qualified Data.Bifunctor as Base
@@ -237,19 +261,29 @@ contramap = fmap . unop
 -- * Bi/Pro Functors
 --------------------------------------------------------------------------------
 
-class (Functor f, Cod f ~ Nat p q, Category p, Category q) =>
-  Bifunctor (p :: Cat j) (q :: Cat k) (f :: i -> j -> k) | f -> p q where
-instance (Functor f, Cod f ~ Nat p q, Category p, Category q) => Bifunctor p q f where
+class (Functor f, Dom f ~ p, Cod f ~ Nat q r, Category p, Category q, Category r) =>
+  BifunctorOf (p :: Cat i) (q :: Cat j) (r :: Cat k) (f :: i -> j -> k) | f -> p q r where
+instance (Functor f, Dom f ~ p, Cod f ~ Nat q r, Category p, Category q, Category r) => 
+  BifunctorOf p q r f where
 
-second :: forall p q f a c d. (Bifunctor p q f, Ob (Dom f) a) => p c d -> q (f a c) (f a d)
-second p = fmap p \\ lemma
+first :: (BifunctorOf p q r f, Ob q c) => p a b -> r (f a c) (f b c)
+first p = runNat (fmap p)
+
+second :: forall p q r f a c d. (BifunctorOf p q r f, Ob p a) => q c d -> r (f a c) (f a d)
+second q = fmap q \\ lemma
   where
-    lemma :: Ob (Dom f) a :- FunctorOf p q (f a)
+    lemma :: Ob p a :- FunctorOf q r (f a)
     lemma = ob
 
-bimap :: Bifunctor p q f => Dom f a b -> p c d -> q (f a c) (f b d)
+bimap :: BifunctorOf p q r f => p a b -> q c d -> r (f a c) (f b d)
 bimap d p = case (source d, target p) of
-  (Dict, Dict) -> runNat (fmap d) . second p
+  (Dict, Dict) -> first d . second p
 
-dimap :: Bifunctor p q f => Op (Dom f) a b -> p c d -> q (f b c) (f a d)
+lmap :: (BifunctorOf p q r f, Ob q c) => Op p a b -> r (f b c) (f a c)
+lmap = first . unop 
+
+rmap :: (BifunctorOf p q r f, Ob p a) => q c d -> r (f a c) (f a d)
+rmap = second
+
+dimap :: BifunctorOf p q r f => Op p a b -> q c d -> r (f b c) (f a d)
 dimap = bimap . unop

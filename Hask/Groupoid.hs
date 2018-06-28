@@ -3,7 +3,11 @@
 {-# LANGUAGE UndecidableSuperClasses #-}
 {-# LANGUAGE TypeInType #-}
 
-module Hask.Groupoid where
+module Hask.Groupoid 
+  ( 
+  -- * Groupoids
+    Groupoid(..)
+  ) where
 
 import Data.Type.Coercion (Coercion)
 import Data.Type.Equality ((:~:))

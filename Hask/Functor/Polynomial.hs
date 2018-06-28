@@ -18,7 +18,24 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeInType #-}
 
-module Hask.Functor.Polynomial where
+module Hask.Functor.Polynomial 
+  (
+  -- * 0 Category
+    Empty
+  , empty
+  , Vacuous
+  -- * 1 Category
+  , Unit(..)
+  -- * Product Category
+  , Product(..)
+  , ProductOb
+  , type Fst
+  , type Snd
+  -- * Coproduct Category
+  , Coproduct(..)
+  , CoproductOb(..)
+  , CoproductDict(..)
+  ) where
 
 import Prelude (type Either(..))
 
@@ -106,7 +123,9 @@ type family Snd (a :: (i, j)) :: j where
   Snd '(x, y) = y
 
 data Product (p :: Cat i) (q :: Cat j) :: Cat (i, j) where
-  Product :: p a c -> q b d -> Product p q '(a, b) '(c, d)
+  Product 
+    :: { proj1 :: p a c
+       , proj2 :: q b d } -> Product p q '(a, b) '(c, d)
 
 tupleEta :: forall (i :: Type) (j :: Type) (a :: (i, j)). a :~: '(Fst a, Snd a)
 tupleEta = unsafeCoerce Refl

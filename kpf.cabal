@@ -27,6 +27,7 @@ library
     , constraints >= 0.10 && < 1
   exposed-modules:
       Hask.Functor
-    , Hask.Functor.Polynomial
     , Hask.Functor.Faithful
+    , Hask.Functor.Polynomial
     , Hask.Groupoid
+    , Hask.Iso
