@@ -28,4 +28,5 @@ library
   exposed-modules:
       Hask.Functor
     , Hask.Functor.Polynomial
+    , Hask.Functor.Faithful
     , Hask.Groupoid

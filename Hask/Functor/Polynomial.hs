@@ -31,6 +31,7 @@ import Unsafe.Coerce (unsafeCoerce)
 import Data.Constraint (Dict(..), Bottom(..))
 
 import Hask.Functor
+import Hask.Functor.Faithful
 import Hask.Groupoid
 
 --------------------------------------------------------------------------------
@@ -87,6 +88,12 @@ instance Functor (Unit a) where
 
 instance Groupoid Unit where
   sym _ = Unit
+
+instance FullyFaithful Unit where
+  unfmap _ = Yoneda Unit
+
+instance FullyFaithful (Unit a) where
+  unfmap _ = Unit
 
 --------------------------------------------------------------------------------
 -- * Product Category

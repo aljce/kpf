@@ -230,7 +230,7 @@ instance Functor (Coercion e) where
 -- * Contravariant Functors
 --------------------------------------------------------------------------------
 
-contramap :: Functor f => Op (Dom f) b a -> Cod f (f a) (f b)
+contramap :: Functor f => Op (Dom f) a b -> Cod f (f b) (f a)
 contramap = fmap . unop
 
 --------------------------------------------------------------------------------
@@ -251,5 +251,5 @@ bimap :: Bifunctor p q f => Dom f a b -> p c d -> q (f a c) (f b d)
 bimap d p = case (source d, target p) of
   (Dict, Dict) -> runNat (fmap d) . second p
 
-dimap :: Bifunctor p q f => Op (Dom f) b a -> p c d -> q (f a c) (f b d)
+dimap :: Bifunctor p q f => Op (Dom f) a b -> p c d -> q (f b c) (f a d)
 dimap = bimap . unop
