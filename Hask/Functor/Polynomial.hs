@@ -33,6 +33,7 @@ module Hask.Functor.Polynomial
   , type Snd
   -- * Coproduct Category
   , Coproduct(..)
+  , coproduct
   , CoproductOb(..)
   , CoproductDict(..)
   ) where
@@ -40,8 +41,8 @@ module Hask.Functor.Polynomial
 import Prelude (type Either(..))
 
 import Data.Kind (Constraint, Type)
-import Data.Void (Void)
 import Data.Type.Equality ((:~:)(..))
+import Data.Void (type Void)
 
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -86,7 +87,7 @@ instance Groupoid Empty where
 -- * 1 Category
 --------------------------------------------------------------------------------
 
-data Unit :: Cat i where
+data Unit :: Cat () where
   Unit :: Unit a b
 
 instance Category Unit where
@@ -164,6 +165,15 @@ instance (Groupoid p, Groupoid q) => Groupoid (Product p q) where
 data Coproduct (p :: Cat i) (q :: Cat j) :: Cat (Either i j) where
   InjL :: p a c -> Coproduct p q (Left a)  (Left c)
   InjR :: q b d -> Coproduct p q (Right b) (Right d)
+
+coproduct
+  :: (forall a c. (Left  a ~ x, Left  c ~ y) => p a c -> r)
+  -> (forall b d. (Right b ~ x, Right d ~ y) => q b d -> r)
+  -> Coproduct p q x y
+  -> r
+coproduct f g = \case
+  InjL p -> f p
+  InjR q -> g q
 
 data CoproductDict (p :: i -> Constraint) (q :: j -> Constraint) (a :: Either i j) where
   DictL :: p x => CoproductDict p q (Left x)
