@@ -6,6 +6,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DataKinds #-}
@@ -35,7 +36,6 @@ module Hask.Functor.Polynomial
   , Coproduct(..)
   , coproduct
   , CoproductOb(..)
-  , CoproductDict(..)
   ) where
 
 import Prelude (type Either(..))
@@ -175,23 +175,17 @@ coproduct f g = \case
   InjL p -> f p
   InjR q -> g q
 
-data CoproductDict (p :: i -> Constraint) (q :: j -> Constraint) (a :: Either i j) where
-  DictL :: p x => CoproductDict p q (Left x)
-  DictR :: q y => CoproductDict p q (Right y)
-
 class CoproductOb (p :: i -> Constraint) (q :: j -> Constraint) (a :: Either i j) where
-  coproductOb :: CoproductDict p q a
+  coproductOb :: (forall x. (a ~ Left x, p x) => r) -> (forall y. (a ~ Right y, q y) => r) -> r
 instance p x => CoproductOb p q (Left x)  where
-  coproductOb = DictL
+  coproductOb f _ = f
 instance q y => CoproductOb p q (Right y) where
-  coproductOb = DictR
+  coproductOb _ g = g
 
 instance (Category p, Category q) => Category (Coproduct p q) where
   type Ob (Coproduct p q) = CoproductOb (Ob p) (Ob q)
   id :: forall a. Ob (Coproduct p q) a => Coproduct p q a a
-  id = case coproductOb :: CoproductDict (Ob p) (Ob q) a of
-    DictL -> InjL id
-    DictR -> InjR id
+  id = coproductOb @_ @_ @(Ob p) @(Ob q) @a (InjL id) (InjR id)
   coprod1 . coprod2 = case coprod1 of
     InjL p1 -> case coprod2 of
       InjL p2 -> InjL (p1 . p2)
