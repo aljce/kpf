@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeInType #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 module Hask.Iso
   (
@@ -18,7 +19,7 @@ import Hask.Functor
 -- * Isomorphisms
 --------------------------------------------------------------------------------
 
-type Iso c d e s t a b = forall f. BifunctorOf (Op c) d e f => f a b -> f s t
+type Iso p q r s t a b = forall f. BifunctorOf (Op p) q r f => f a b -> f s t
 
 --------------------------------------------------------------------------------
 -- * Yonedas lemma

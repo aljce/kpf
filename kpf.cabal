@@ -29,5 +29,6 @@ library
       Hask.Functor
     , Hask.Functor.Faithful
     , Hask.Functor.Polynomial
+    , Hask.Functor.Compose
     , Hask.Groupoid
     , Hask.Iso
