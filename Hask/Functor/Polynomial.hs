@@ -186,11 +186,8 @@ instance (Category p, Category q) => Category (Coproduct p q) where
   type Ob (Coproduct p q) = CoproductOb (Ob p) (Ob q)
   id :: forall a. Ob (Coproduct p q) a => Coproduct p q a a
   id = coproductOb @_ @_ @(Ob p) @(Ob q) @a (InjL id) (InjR id)
-  coprod1 . coprod2 = case coprod1 of
-    InjL p1 -> case coprod2 of
-      InjL p2 -> InjL (p1 . p2)
-    InjR q1 -> case coprod2 of
-      InjR q2 -> InjR (q1 . q2)
+  InjL p . InjL q = InjL (p . q)
+  InjR p . InjR q = InjR (p . q)
   source (InjL p) = case source p of
     Dict -> Dict
   source (InjR q) = case source q of

@@ -60,25 +60,25 @@ type Cat i = i -> i -> Type
 
 newtype Yoneda p a b = Yoneda { runYoneda :: p b a }
 
-class Always (p :: Cat i) (a :: i)
-instance Always p a
+class Always a where
+instance Always a where
 
 class (Functor p, Dom p ~ Op p, Cod p ~ Nat p (->), Ob (Op p) ~ Ob p) => Category (p :: Cat i) where
   type Op p :: Cat i
   type Op p = Yoneda p
 
   type Ob p :: i -> Constraint
-  type Ob p = Always p
+  type Ob p = Always
 
   id :: Ob p a => p a a
   (.) :: p b c -> p a b -> p a c
 
   source :: p a b -> Dict (Ob p a)
-  default source :: (Ob p ~ Always p) => p a b -> Dict (Ob p a)
+  default source :: (Ob p ~ Always) => p a b -> Dict (Ob p a)
   source _ = Dict
 
   target :: p a b -> Dict (Ob p b)
-  default target :: (Ob p ~ Always p) => p a b -> Dict (Ob p b)
+  default target :: (Ob p ~ Always) => p a b -> Dict (Ob p b)
   target _ = Dict
 
   op :: p b a -> Op p a b
