@@ -32,6 +32,7 @@ module Hask.Functor.Polynomial
   , ProductOb
   , type Fst
   , type Snd
+  , tupleEta
   -- * Coproduct Category
   , Coproduct(..)
   , coproduct
