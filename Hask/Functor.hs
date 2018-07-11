@@ -19,6 +19,7 @@ module Hask.Functor
   (
   -- * Categories
     type Cat
+  , type Op
   , Category(..)
   , Yoneda(..)
   , Always
@@ -63,10 +64,10 @@ newtype Yoneda p a b = Yoneda { runYoneda :: p b a }
 class Always a where
 instance Always a where
 
-class (Functor p, Dom p ~ Op p, Cod p ~ Nat p (->), Ob (Op p) ~ Ob p) => Category (p :: Cat i) where
-  type Op p :: Cat i
-  type Op p = Yoneda p
+type family Op (p :: Cat i) :: Cat i where
+  Op p = Dom p
 
+class (BifunctorOf (Op p) p (->) p, Ob (Op p) ~ Ob p) => Category (p :: Cat i) where
   type Ob p :: i -> Constraint
   type Ob p = Always
 
@@ -142,7 +143,6 @@ instance Functor (->) where
   fmap (Yoneda f1) = Nat (\f2 -> f2 . f1)
 
 instance (Category p, Op p ~ Yoneda p) => Category (Yoneda p) where
-  type Op (Yoneda p) = p
   type Ob (Yoneda p) = Ob p
   id = Yoneda id
   Yoneda f . Yoneda g = Yoneda (g . f)
@@ -213,7 +213,6 @@ instance Functor Base.Either where
 --------------------------------------------------------------------------------
 
 instance Category (:~:) where
-  type Op (:~:) = (:~:)
   id = Refl
   (.) = Base.flip Equality.trans
   op = Equality.sym
@@ -234,7 +233,6 @@ instance Functor ((:~:) e) where
 --------------------------------------------------------------------------------
 
 instance Category Coercion where
-  type Op Coercion = Coercion
   id = Coercion
   (.) = Base.flip Coercion.trans
   op   = Coercion.sym
