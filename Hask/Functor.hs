@@ -42,9 +42,10 @@ module Hask.Functor
   , dimap
   ) where
 
-import qualified Prelude as Base
+import qualified Prelude as Base hiding (id, (.))
 import qualified Data.Bifunctor as Base
 import qualified Data.Complex as Base
+import qualified Control.Category as Base
 import qualified Control.Monad.ST as Strict
 import qualified Control.Monad.ST.Lazy as Lazy
 
@@ -72,8 +73,13 @@ class (BifunctorOf (Op p) p (->) p, Ob (Op p) ~ Ob p) => Category (p :: Cat i) w
   type Ob p = Always
 
   id :: Ob p a => p a a
-  (.) :: p b c -> p a b -> p a c
+  default id :: (Ob p ~ Always, Base.Category p) => p a a 
+  id = Base.id
 
+  (.) :: p b c -> p a b -> p a c
+  default (.) :: (Base.Category p) => p b c -> p a b -> p a c
+  (.) = (Base..)
+  
   source :: p a b -> Dict (Ob p a)
   default source :: (Ob p ~ Always) => p a b -> Dict (Ob p a)
   source _ = Dict
@@ -102,7 +108,9 @@ class (Category (Dom f), Category (Cod f)) => Functor (f :: i -> j) where
   type Cod f :: Cat j
   type Cod f = Hask
   fmap :: Dom f a b -> Cod f (f a) (f b)
-  default fmap :: (i ~ Type, j ~ Type, Dom f ~ Hask, Cod f ~ Hask, OldFunctor (i -> j) f) => Dom f a b -> Cod f (f a) (f b)
+  default fmap 
+    :: (i ~ Type, j ~ Type, Dom f ~ Hask, Cod f ~ Hask, OldFunctor (i -> j) f)  
+    => Dom f a b -> Cod f (f a) (f b)
   fmap = Base.fmap
 
 class (Functor f, Dom f ~ p, Cod f ~ q) => FunctorOf p q f | f -> p q
@@ -134,8 +142,6 @@ instance (Category p, Category q) => Functor (Nat p q f) where
   fmap = (.)
 
 instance Category (->) where
-  id = Base.id
-  (.) = (Base..)
 
 instance Functor (->) where
   type Dom (->) = Yoneda (->)
@@ -213,8 +219,6 @@ instance Functor Base.Either where
 --------------------------------------------------------------------------------
 
 instance Category (:~:) where
-  id = Refl
-  (.) = Base.flip Equality.trans
   op = Equality.sym
   unop = Equality.sym
 
@@ -233,8 +237,6 @@ instance Functor ((:~:) e) where
 --------------------------------------------------------------------------------
 
 instance Category Coercion where
-  id = Coercion
-  (.) = Base.flip Coercion.trans
   op   = Coercion.sym
   unop = Coercion.sym
 
