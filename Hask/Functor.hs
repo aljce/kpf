@@ -1,3 +1,15 @@
+{-|
+Module      : Hask.Functor
+Description : Functors and Categories
+Copyright   : (c) Edward Kmett, 2018
+                  Kyle McKean,  2018
+License     : BSD-3-Clause
+Maintainer  : mckean.kylej@gmail.com
+Stability   : experimental
+Portability : Portatable
+
+FIXME: Doc
+-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
