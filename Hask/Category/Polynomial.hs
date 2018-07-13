@@ -1,3 +1,16 @@
+{-|
+Module      : Hask.Category.Polynomial
+Description : Polynomial Categories (0, 1, +, *)
+Copyright   : (c) Edward Kmett, 2018
+                  Kyle McKean,  2018
+License     : BSD-3-Clause
+Maintainer  : mckean.kylej@gmail.com
+Stability   : experimental
+Portability : portable
+
+__FIXME__: Doc
+-}
+
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE EmptyCase #-}
 {-# LANGUAGE LambdaCase #-}
@@ -19,7 +32,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeInType #-}
 
-module Hask.Functor.Polynomial 
+module Hask.Category.Polynomial 
   (
   -- * 0 Category
     Empty
@@ -57,11 +70,14 @@ import Hask.Groupoid
 -- * 0 Category
 --------------------------------------------------------------------------------
 
+-- | __FIXME__: Doc
 data Empty :: Cat Void where
 
+-- | __FIXME__: Doc
 empty :: Empty a b -> void
 empty = \case{}
 
+-- | __FIXME__: Doc
 class Bottom => Vacuous a where
 
 instance Category Empty where
@@ -88,6 +104,7 @@ instance Groupoid Empty where
 -- * 1 Category
 --------------------------------------------------------------------------------
 
+-- | __FIXME__: Doc
 data Unit :: Cat () where
   Unit :: Unit a b
 
@@ -118,20 +135,26 @@ instance FullyFaithful (Unit a) where
 -- * Product Category
 --------------------------------------------------------------------------------
 
+-- | __FIXME__: Doc
 type family Fst (a :: (i, j)) :: i where
   Fst '(x, y) = x
 
+-- | __FIXME__: Doc
 type family Snd (a :: (i, j)) :: j where
   Snd '(x, y) = y
 
+-- | __FIXME__: Doc
 data Product (p :: Cat i) (q :: Cat j) :: Cat (i, j) where
   Product 
-    :: { proj1 :: p a c
-       , proj2 :: q b d } -> Product p q '(a, b) '(c, d)
+    :: { proj1 :: p a c -- ^ __FIXME__: Doc
+       , proj2 :: q b d -- ^ __FIXME__: Doc
+       } -> Product p q '(a, b) '(c, d)
 
+-- | __FIXME__: Doc
 tupleEta :: forall (i :: Type) (j :: Type) (a :: (i, j)). a :~: '(Fst a, Snd a)
 tupleEta = unsafeCoerce Refl
 
+-- | __FIXME__: Doc
 class (p (Fst a), q (Snd a)) => ProductOb (p :: i -> Constraint) (q :: j -> Constraint) (a :: (i, j)) where
 instance (p (Fst a), q (Snd a)) => ProductOb p q a where 
 
@@ -163,10 +186,12 @@ instance (Groupoid p, Groupoid q) => Groupoid (Product p q) where
 -- * Coproduct Category
 --------------------------------------------------------------------------------
 
+-- | __FIXME__: Doc
 data Coproduct (p :: Cat i) (q :: Cat j) :: Cat (Either i j) where
   InjL :: p a c -> Coproduct p q (Left a)  (Left c)
   InjR :: q b d -> Coproduct p q (Right b) (Right d)
 
+-- | __FIXME__: Doc
 coproduct
   :: (forall a c. (Left  a ~ x, Left  c ~ y) => p a c -> r)
   -> (forall b d. (Right b ~ x, Right d ~ y) => q b d -> r)
@@ -176,6 +201,7 @@ coproduct f g = \case
   InjL p -> f p
   InjR q -> g q
 
+-- | __FIXME__: Doc
 class CoproductOb (p :: i -> Constraint) (q :: j -> Constraint) (a :: Either i j) where
   coproductOb :: (forall x. (a ~ Left x, p x) => r) -> (forall y. (a ~ Right y, q y) => r) -> r
 instance p x => CoproductOb p q (Left x)  where

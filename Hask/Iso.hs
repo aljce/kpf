@@ -1,3 +1,15 @@
+{-|
+Module      : Hask.Iso
+Description : Lens like Isomorphisms
+Copyright   : (c) Edward Kmett, 2018
+                  Kyle McKean,  2018
+License     : BSD-3-Clause
+Maintainer  : mckean.kylej@gmail.com
+Stability   : experimental
+Portability : portable
+
+__FIXME__: Doc
+-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -27,15 +39,18 @@ import Hask.Functor
 -- * Isomorphisms
 --------------------------------------------------------------------------------
 
+-- | __FIXME__: Doc
 type Iso p q r s t a b = forall f. BifunctorOf (Op p) q r f => f a b -> f s t
 
 --------------------------------------------------------------------------------
 -- * To
 --------------------------------------------------------------------------------
 
+-- | __FIXME__: Doc
 newtype To (p :: Cat i) (x :: i) (a :: i) (b :: i) 
   = To { runTo :: p a x }
 
+-- | __FIXME__: Doc
 _To :: Iso (->) (->) (->) (To p x a b) (To p y c d) (p a x) (p c y)
 _To = dimap runTo To
 
@@ -54,6 +69,7 @@ instance Category p => Functor (To p) where
   type Cod (To p) = Nat (Op p) (Nat p (->))
   fmap f = Nat (Nat (_To (\p -> f . p)))
 
+-- | __FIXME__: Doc
 to :: (Category p, Ob p a) => (To p a a a -> To p a s s) -> p s a
 to l = runTo (l (To id))
 
@@ -61,9 +77,11 @@ to l = runTo (l (To id))
 -- * From
 --------------------------------------------------------------------------------
 
+-- | __FIXME__: Doc
 newtype From (p :: Cat i) (x :: i) (a :: i) (b :: i) 
   = From { runFrom :: p x b }
 
+-- | __FIXME__: Doc
 _From :: Iso (->) (->) (->) (From p x a b) (From p y c d) (p x b) (p y d)
 _From = dimap runFrom From
 
@@ -82,6 +100,7 @@ instance Category p => Functor (From p) where
   type Cod (From p) = Nat (Op p) (Nat p (->))
   fmap f = Nat (Nat (_From (\p -> p . unop f)))
 
+-- | __FIXME__: Doc
 from :: (Category p, Ob p a) => (From p a a a -> From p a s s) -> p a s
 from l = runFrom (l (From id))
 
@@ -89,6 +108,7 @@ from l = runFrom (l (From id))
 -- * Yonedas lemma
 --------------------------------------------------------------------------------
 
+-- | __FIXME__: Doc
 yoneda 
   :: forall p f g a b
   .  (Ob p a, FunctorOf p (->) g, FunctorOf p (->) (p b)) 

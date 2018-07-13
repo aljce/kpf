@@ -28,9 +28,10 @@ library
   exposed-modules:
       Hask.Functor
     , Hask.Functor.Faithful
-    , Hask.Functor.Polynomial
     , Hask.Functor.Adjoint
     , Hask.Functor.Compose
+    , Hask.Category.Polynomial
+    , Hask.Category.Sub
     , Hask.Groupoid
     , Hask.Iso
     , Hask.Tensor
@@ -43,4 +44,6 @@ test-suite doctest
   build-depends:
       base >= 4.11 && < 5
     , kpf
+    , constraints >= 0.10
     , doctest >= 0.10
+    , containers >= 0.4

@@ -1,3 +1,15 @@
+{-|
+Module      : Hask.Functor.Adjoint
+Description : Adjunctions
+Copyright   : (c) Edward Kmett, 2018
+                  Kyle McKean,  2018
+License     : BSD-3-Clause
+Maintainer  : mckean.kylej@gmail.com
+Stability   : experimental
+Portability : portable
+
+__FIXME__: Doc
+-}
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -23,11 +35,13 @@ import Unsafe.Coerce (unsafeCoerce)
 import Data.Constraint (Dict(..))
 
 import Hask.Functor
-import Hask.Functor.Polynomial
 import Hask.Functor.Compose
+import Hask.Category.Polynomial
 import Hask.Iso
 
+-- | __FIXME__: Doc
 class (Functor f, Functor g, Dom f ~ Cod g) => (f :: j -> i) -| (g :: i -> j) | f -> g, g -> f where
+  -- | __FIXME__: Doc
   adjoint 
     -- TODO: These constraints are not needed but make the product instance possible
     -- We should remove them.
@@ -37,10 +51,15 @@ class (Functor f, Functor g, Dom f ~ Cod g) => (f :: j -> i) -| (g :: i -> j) | 
 instance (,) e -| (->) e where
   adjoint = dimap (\f a e -> f (e, a)) (\f (e, c) -> f c e)
 
+-- | __FIXME__: Doc
 data DIAGONAL = Diagonal
+
+-- | __FIXME__: Doc
 type Diagonal = (Any 'Diagonal :: Cat i -> i -> (i, i))
 
+-- | __FIXME__: Doc
 class Category p => Diagonals (p :: Cat i) where
+  -- | __FIXME__: Doc
   _Diagonal :: Iso (Product p p) (Product p p) (->) (Diagonal p a) (Diagonal p b) ('(a, a)) ('(b, b))
 
 instance Diagonals (->) where
@@ -51,12 +70,19 @@ instance Diagonals p => Functor (Diagonal p) where
   type Cod (Diagonal p) = Product p p
   fmap p = _Diagonal (Product p p)
 
+-- | __FIXME__: Doc
 data PROD = Prod
+
+-- | __FIXME__: Doc
 type Prod = (Any 'Prod :: Cat i -> (i, i) -> i)
 
+-- | __FIXME__: Doc
 class Category p => Prods (p :: Cat i) where
+  -- | __FIXME__: Doc
   fst  :: p (Prod p '(a, b)) a
+  -- | __FIXME__: Doc
   snd  :: p (Prod p '(a, b)) b
+  -- | __FIXME__: Doc
   pair :: p x a -> p x b -> p x (Prod p '(a, b))
  
 data instance Any 'Prod (->) :: (Type, Type) -> Type where

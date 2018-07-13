@@ -1,3 +1,15 @@
+{-|
+Module      : Hask.Tensor
+Description : Associative Bifunctors
+Copyright   : (c) Edward Kmett, 2018
+                  Kyle McKean,  2018
+License     : BSD-3-Clause
+Maintainer  : mckean.kylej@gmail.com
+Stability   : experimental
+Portability : portable
+
+__FIXME__: Doc
+-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -16,7 +28,9 @@ import Data.Void (Void)
 import Hask.Functor
 import Hask.Iso
 
+-- | __FIXME__: Doc
 class BifunctorOf p p p f => Semitensor (p :: Cat i) (f :: i -> i -> i) | f -> p where
+  -- | __FIXME__: Doc
   associate 
     :: (Ob p a, Ob p b, Ob p c, Ob p x, Ob p y, Ob p z) 
     => Iso p p (->) (f (f a b) c) (f (f x y) z) (f a (f b c)) (f x (f y z))
@@ -43,9 +57,13 @@ instance Semitensor (->) (,) where
       yon :: (x, (y, z)) -> ((x, y), z)
       yon (x, (y, z)) = ((x, y), z)
 
+-- | __FIXME__: Doc
 class Semitensor p f => Tensor p (f :: i -> i -> i) where
+  -- | __FIXME__: Doc
   type I f :: i
+  -- | __FIXME__: Doc
   lambda :: (Ob p a, Ob p b) => Iso p p (->) (f (I f) a) (f (I f) b) a b
+  -- | __FIXME__: Doc
   rho    :: (Ob p a, Ob p b) => Iso p p (->) (f a (I f)) (f b (I f)) a b
 
 instance Tensor (->) Either where
