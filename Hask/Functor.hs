@@ -196,6 +196,8 @@ type family Op (p :: Cat i) :: Cat i where
 --   type Cod Set = (->)
 --   fmap (OrdHask f) = map f
 -- :}
+-- 
+-- A generalization of the above type can be found in 'Hask.Category.Sub'.
 --
 -- @since 0.1.0
 

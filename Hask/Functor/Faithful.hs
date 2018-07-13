@@ -9,6 +9,8 @@ Stability   : experimental
 Portability : portable
 
 __FIXME__: Doc
+
+@since 0.1.0
 -}
 {-# LANGUAGE UndecidableSuperClasses #-}
 {-# LANGUAGE TypeInType #-}
@@ -25,8 +27,12 @@ import Data.Constraint (Dict, (:-), unmapDict)
 import Hask.Functor
 
 -- | __FIXME__: Doc
+--
+-- @since 0.1.0
 class Functor f => FullyFaithful (f :: i -> j) where
   -- | __FIXME__: Doc
+  --
+  -- @since 0.1.0
   unfmap :: Cod f (f a) (f b) -> Dom f a b
 
 instance FullyFaithful Dict where

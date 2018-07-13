@@ -9,6 +9,8 @@ Stability   : experimental
 Portability : portable
 
 __FIXME__: Doc
+
+@since 0.1.0
 -}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -29,12 +31,19 @@ import Hask.Functor
 import Hask.Iso
 
 -- | __FIXME__: Doc
+--
+-- @since 0.1.0
 class BifunctorOf p p p f => Semitensor (p :: Cat i) (f :: i -> i -> i) | f -> p where
   -- | __FIXME__: Doc
+  --
+  -- @since 0.1.0
   associate 
     :: (Ob p a, Ob p b, Ob p c, Ob p x, Ob p y, Ob p z) 
     => Iso p p (->) (f (f a b) c) (f (f x y) z) (f a (f b c)) (f x (f y z))
 
+-- | __FIXME__: Doc
+--
+-- @since 0.1.0
 instance Semitensor (->) Either where
   associate = dimap hither yon
     where
@@ -49,6 +58,9 @@ instance Semitensor (->) Either where
         Right (Left y)  -> Left (Right y)
         Right (Right z) -> Right z
 
+-- | __FIXME__: Doc
+--
+-- @since 0.1.0
 instance Semitensor (->) (,) where
   associate = dimap hither yon
     where
@@ -58,19 +70,34 @@ instance Semitensor (->) (,) where
       yon (x, (y, z)) = ((x, y), z)
 
 -- | __FIXME__: Doc
+--
+-- @since 0.1.0
 class Semitensor p f => Tensor p (f :: i -> i -> i) where
   -- | __FIXME__: Doc
+  -- @since 0.1.0
   type I f :: i
+
   -- | __FIXME__: Doc
+  --
+  -- @since 0.1.0
   lambda :: (Ob p a, Ob p b) => Iso p p (->) (f (I f) a) (f (I f) b) a b
+
   -- | __FIXME__: Doc
+  --
+  -- @since 0.1.0
   rho    :: (Ob p a, Ob p b) => Iso p p (->) (f a (I f)) (f b (I f)) a b
 
+-- | __FIXME__: Doc
+--
+-- @since 0.1.0
 instance Tensor (->) Either where
   type I Either = Void
   lambda = dimap (\(Right a) -> a) Right
   rho = dimap (\(Left a) -> a) Left
 
+-- | __FIXME__: Doc
+--
+-- @since 0.1.0
 instance Tensor (->) (,) where
   type I (,) = ()
   lambda = dimap (\((), a) -> a) (\b -> ((), b))

@@ -9,6 +9,8 @@ Stability   : experimental
 Portability : portable
 
 __FIXME__: Doc
+
+@since 0.1.0
 -}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -44,35 +46,58 @@ import Hask.Functor
 import Hask.Iso
 
 -- | __FIXME__: Doc
+--
+-- @since 0.1.0
 data family Any :: k
 
 -- | __FIXME__: Doc
+--
+-- @since 0.1.0
 data COMPOSE = 
   Compose
 
 -- | __FIXME__: Doc
+--
+-- @since 0.1.0
 type Compose = (Any 'Compose :: Cat i -> Cat j -> Cat k -> (j -> k) -> (i -> j) -> (i -> k))
 
 newtype instance Any 'Compose p q r (f :: i -> Type) g a 
   = Comp { runComp :: f (g a) }
 
 -- | __FIXME__: Doc
+--
+-- @since 0.1.0
 class Category r => Composed (r :: Cat k) where
   -- | __FIXME__: Doc
+  --
+  -- @since 0.1.0
   _Compose 
     :: (FunctorOf p q g, FunctorOf p q i, FunctorOf q r f, FunctorOf q r h) 
     => Iso r r (->) (Compose p q r f g a) (Compose p q r h i b) (f (g a)) (h (i b))
 
+-- | __FIXME__: Doc
+--
+-- @since 0.1.0
 instance Composed (->) where
   _Compose = dimap runComp Comp
 
--- TODO: Is there a way to do this without unsafeCoerceConstraint?
+-- FIXME: Is there a way to do this without unsafeCoerceConstraint?
+
+-- | __FIXME__: Doc
+--
+-- @since 0.1.0
 instance (Category p, Category q, Category r) => Class (f (g a)) (Compose p q r f g a) where
   cls = unsafeCoerceConstraint
 
+-- | __FIXME__: Doc
+--
+-- @since 0.1.0
 instance (Category p, Category q, Category r) => f (g a) :=> Compose p q r f g a where
   ins = unsafeCoerceConstraint
 
+-- | __FIXME__: Doc
+--
+-- @since 0.1.0
 instance Composed (:-) where
   _Compose = dimap cls ins
 
@@ -84,6 +109,9 @@ instance Composed (:-) where
       {- to :: Nat x y (h (i b)) (Compose p q (Nat x y) h i b) -}
       {- to = Nat Base.undefined -}
 
+-- | __FIXME__: Doc
+--
+-- @since 0.1.0
 instance (Category p, Category q, Composed r, FunctorOf q r f, FunctorOf p q g) => Functor (Compose p q r f g) where
   type Dom (Compose p q r f g) = p
   type Cod (Compose p q r f g) = r

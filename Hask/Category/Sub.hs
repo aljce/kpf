@@ -19,6 +19,11 @@ __FIXME__: Doc
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeInType #-}
 {-# LANGUAGE UndecidableSuperClasses #-}
+
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeApplications #-}
 module Hask.Category.Sub 
   ( -- * Sub-Categories
     SubCat(..)
@@ -30,6 +35,7 @@ import qualified Prelude as Base ()
 import Data.Kind (Constraint)
 
 import Data.Constraint (Dict(..))
+{- import Data.Constraint (Dict(..), (:-)(..)) -}
 
 import Hask.Functor
 
@@ -62,6 +68,7 @@ instance Category p => Functor (SubCat p c a) where
   type Dom (SubCat p c a) = SubCat p c
   type Cod (SubCat p c a) = (->)
   fmap = (.)
+
 -- | __FIXME__: Doc
 --
 -- @since 0.1.0
@@ -69,6 +76,11 @@ instance Category p => Functor (SubCat p c) where
   type Dom (SubCat p c) = Yoneda (SubCat p c)
   type Cod (SubCat p c) = Nat (SubCat p c) (->)
   fmap (Yoneda f) = Nat (\g -> g . f)
+
+{- instance Category p => Functor (SubCat p) where -}
+  {- type Dom (SubCat p) = Nat p (:-) -}
+  {- type Cod (SubCat p) = Nat p (Nat p (->)) -}
+  {- fmap = let x = x in x -}
 
 -- | __FIXME__: Doc
 --
